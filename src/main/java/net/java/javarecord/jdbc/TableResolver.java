@@ -115,6 +115,7 @@ public class TableResolver {
             } else {
                 update();
             }
+            saveHasMany();
         } catch (SQLException ex) {
             throw new RuntimeException(ex);
         }
@@ -144,6 +145,27 @@ public class TableResolver {
      */
     private void update() throws SQLException {
         sql.update();
+    }
+    /**
+     * Search for each hasMany key, and save each JavaRecord object of the list
+     * @since 1.0
+     * @see JavaRecord#save() 
+     */
+    private void saveHasMany(){
+        for(Map.Entry<String, Object> e : javaRecord.getAttributes().entrySet()){
+            if(isHasManyKey(e.getKey())){
+                List<JavaRecord> objects = (List<JavaRecord>) e.getValue();
+                for(JavaRecord j : objects){
+                    //Update the BelongTo key
+                    String jrTable = javaRecord.getClass().getSimpleName().toLowerCase();
+                    j.setAttribute(jrTable+"_"+idColumn, javaRecord.getAttribute(idColumn));
+                    j.setAttribute(jrTable, javaRecord);
+                    //Save all objects.
+                    j.save();
+                }
+                objects = null;
+            }
+        }
     }
 
     /**

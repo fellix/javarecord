@@ -52,9 +52,14 @@ public abstract class JavaRecord {
         if (resolver.isHasManyKey(key)) {
             List l = (List) attributes.get(key);
             l.add(value);
-        //TODO: BelongTo update the object and the belong to key (field_id)
-        }
-        else {
+            l = null;
+        }else if(resolver.isBelongsToKey(key)){
+            String validKey = key+"_id";
+            JavaRecord j = (JavaRecord) value;
+            setAttribute(validKey, j.getAttribute("id"));
+            j = null;
+            attributes.put(key, value);
+        }else {
             attributes.put(key, value);
         }
     }
@@ -65,7 +70,7 @@ public abstract class JavaRecord {
      * @return value of the field - null if the key doesn't exist
      * @since 1.0
      */
-    public Object getAttribute(String key) {
+    public <T> T getAttribute(String key) {
         if(resolver.isHasManyKey(key)){
             try {
                 //For use lazy, fill the array
@@ -77,7 +82,7 @@ public abstract class JavaRecord {
             //LOAD THE OBJECT FOR REFERENCE
             resolver.loadObject(key);
         }
-        return attributes.get(key);
+        return (T) attributes.get(key);
     }
 
     /**

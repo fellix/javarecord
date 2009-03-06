@@ -154,7 +154,7 @@ public class SqlForge {
             if (!e.getKey().equals(primaryKey)) {
                 Object value = e.getValue();
                 //Ignores the Associantion at this moment
-                if (!(value instanceof List) && !(value instanceof JavaRecord)) {
+                if (!(value instanceof List) && !(value instanceof JavaRecord) && (value != null)) {
                     sb.append(e.getKey()).append(", ");
                     values.append("?, ");
                 }
@@ -181,7 +181,10 @@ public class SqlForge {
         where.append(primaryKey).append(" = ?");
         for (Map.Entry<String, Object> e : attributes.entrySet()) {
             String key = e.getKey();
-            if (!key.equals(primaryKey)) {
+            System.out.println(e.getValue());
+            Object value = e.getValue();
+            if (!(key.equals(primaryKey)) && !(value instanceof List) &&
+                    !(value instanceof JavaRecord) && (value != null)) {
                 sb.append(key);
                 sb.append(" = ");
                 sb.append("?").append(", ");
@@ -226,7 +229,7 @@ public class SqlForge {
     private String getSelectById() throws SQLException {
         StringBuilder sb = new StringBuilder("SELECT * FROM ");
         sb.append(tableName).append(" WHERE ");
-        sb.append(getPrimaryKeyColumn()).append(" = ?");//.append(id);
+        sb.append(getPrimaryKeyColumn()).append(" = ?");
         return sb.toString();
     }
     /**
@@ -327,6 +330,7 @@ public class SqlForge {
         smt.execute();
         smt.close();
         smt = null;
+        //TODO MAKE AN SELECT TO FIND THE LAST ID
     }
 
     /**

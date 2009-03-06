@@ -20,9 +20,27 @@ public class App
         post.setAttribute("title", "JavaRecord v1.0-SNAPSHOT with params");
         post.setAttribute("body", "JavaRecord was rewrited, to improve performance, and for more facility!");
         post.save();*/
-        Post post = Post.find(Post.class, 3);
         Comment c = Comment.find(Comment.class, 1);
-        System.out.println(post.getAttribute("comments"));
-        System.out.println(c.getAttribute("post"));
+        //c.setAttribute("post", Post.find(Post.class, 3));
+        //c.save();
+        Post post = c.getAttribute("post");
+        Post p1 = new Post();
+        //p1.setAttribute("id", null);
+        p1.setAttribute("title", "testing");
+        p1.setAttribute("body", "finding the id");
+        print(p1.getAttribute("id"));
+        p1.save();
+        print(post.getAttribute("id"));
+        print(p1.getAttribute("id"));
+        //System.out.println(c.getAttribute("post_id"));
+        //Comment c1 = new Comment();
+        //c1.setAttribute("body", "The commentary body.");
+        //post.setAttribute("comments", c1);
+        //post.save();
     }
+    
+    public static void print(Object o){
+        System.out.println(o);
+    }
+
 }
