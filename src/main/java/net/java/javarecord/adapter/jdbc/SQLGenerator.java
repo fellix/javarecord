@@ -32,13 +32,21 @@ public class SQLGenerator implements Generator {
     private ResultSetMetaData metaData;
     private Map<String, Object> attributes;
     private String primaryKey;
-
+    /**
+     * Defaults construtor
+     * @param adapter Adapter to use
+     * @param tableName
+     * @since 1.0
+     */
     public SQLGenerator(Adapter adapter, String tableName) {
         this.adapter = adapter;
         this.tableName = adapter.isUpperCase() ? tableName.toUpperCase() : tableName;
         primaryKey = getPrimaryKeyColumn();
     }
-
+    /**
+     * Retrive the default column and make the attributes to the database
+     * @since 1.0
+     */
     @Override
     public void loadAttributes() {
         StringBuilder sb = new StringBuilder("SELECT * FROM ").append(tableName);
@@ -68,7 +76,11 @@ public class SQLGenerator implements Generator {
             }
         }
     }
-
+    /**
+     * Getts the attributes of the loaded table
+     * @return Map<String, Object>
+     * @since 1.0
+     */
     @Override
     public Map<String, Object> getAttributes() {
         if (attributes != null) {
@@ -117,7 +129,12 @@ public class SQLGenerator implements Generator {
             throw new SQLGeneratorException(ex.getMessage(), ex);
         }
     }
-
+    /**
+     * Generic method to call. Insert a registry if the PrimaryKey column is empty
+     * @since 1.0
+     * @see #insert()
+     * @see #update()
+     */
     @Override
     public void save() {
         if (attributes.get(primaryKey) == null) {
@@ -127,7 +144,10 @@ public class SQLGenerator implements Generator {
         }
 
     }
-
+    /**
+     * Update a registry in the database
+     * @since 1.0
+     */
     @Override
     public void update() {
         if (attributes.get(primaryKey) == null) {
@@ -165,7 +185,10 @@ public class SQLGenerator implements Generator {
             throw new SQLGeneratorException(ex.getMessage(), ex);
         }
     }
-
+    /**
+     * Insets a registry (new registry) in the database
+     * @since 1.0
+     */
     @Override
     public void insert() {
         StringBuilder sb = new StringBuilder("INSERT INTO ");
@@ -212,7 +235,10 @@ public class SQLGenerator implements Generator {
             throw new SQLGeneratorException(ex.getMessage(), ex);
         }
     }
-
+    /**
+     * Removes an registry from the database
+     * @since 1.0
+     */
     @Override
     public void remove() {
         if (attributes.get(primaryKey) == null) {
@@ -231,7 +257,11 @@ public class SQLGenerator implements Generator {
         }
 
     }
-
+    /**
+     * Sets the atributes
+     * @param attributes to set
+     * @since 1.0
+     */
     @Override
     public void setAttributes(Map<String, Object> attributes) {
         if (attributes == null) {
@@ -239,7 +269,15 @@ public class SQLGenerator implements Generator {
         }
         this.attributes = attributes;
     }
-
+    /**
+     * Overrides the generator find, and call the correct method to use find
+     * @param entityClass Class of the entity to load
+     * @param conditions Properties file to make the conditions, can be null
+     * @return List
+     * @since 1.0
+     * @see #findAll(java.lang.Class)
+     * @see #findByConditions(java.lang.Class, java.util.Properties) 
+     */
     @Override
     public List<? extends JavaRecord> find(Class<? extends JavaRecord> entityClass, Properties conditions) {
         if (conditions == null) {
@@ -249,8 +287,12 @@ public class SQLGenerator implements Generator {
     }
 
     /**
-     * FindAll
-     * @return
+     * Load all objects of this entity class
+     * @param entityClass Class of the entity to load all
+     * @return List
+     * @since 1.0
+     * @see #find(java.lang.Class, java.util.Properties)
+     * @see #findByConditions(java.lang.Class, java.util.Properties)
      */
     private List<? extends JavaRecord> findAll(Class<? extends JavaRecord> entityClass) {
         PreparedStatement smt = database.getPreparedStatement("SELECT * FROM " + tableName);
@@ -278,7 +320,15 @@ public class SQLGenerator implements Generator {
             throw new SQLGeneratorException("findAll throw Exception: " + ex.getMessage(), ex);
         }
     }
-
+    /**
+     * Generates an Select clause using the WHERE statement
+     * @param entityClass Class of the entity to load
+     * @param conditions Properties file to make the conditions, can be null
+     * @return List
+     * @since 1.0
+     * @see #find(java.lang.Class, java.util.Properties)
+     * @see #findAll(java.lang.Class) 
+     */
     private List<? extends JavaRecord> findByConditions(Class<? extends JavaRecord> entityClass, Properties conditions) {
         StringBuilder sb = new StringBuilder("SELECT * FROM ");
         sb.append(tableName).append(" WHERE ");

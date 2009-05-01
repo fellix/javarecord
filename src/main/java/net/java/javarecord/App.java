@@ -30,11 +30,17 @@ public class App
         Post post = posts.get(0);
         post.setAttribute("title", "Titulo Trocado");
         post.save();*/
+
         Properties prop = new Properties();
         prop.put("id", 24);
         List<Post> posts = JavaRecord.find(Post.class, prop);
         print(posts.size());
         Post post = posts.get(0);
+        Post p1 = post;
+        p1.setAttribute("id", null);
+        p1.setAttribute("title", "Novo post");
+        p1.save();
+        
         print(post.getAttribute("id"));
     }
     

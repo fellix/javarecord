@@ -108,6 +108,10 @@ public class TableResolver {
     //saveHasMany();
     }
 
+    public void delete(){
+        generator.remove();
+    }
+
     /**
      * Search for each hasMany key, and save each JavaRecord object of the list
      * @since 1.0

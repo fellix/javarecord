@@ -100,6 +100,18 @@ public abstract class JavaRecord {
         this.attributes = attributes;
     }
 
+    public void delete(){
+        resolver.delete();
+    }
+
+    /**
+     * Generic method do make a find in the dabase. the return away is a List
+     * @param <T> generic type
+     * @param objClazz Entity class to find
+     * @param params condititions to find, can be null
+     * @return List of find object
+     * @since 1.0
+     */
     public static <T> T find(Class<? extends JavaRecord> objClazz, Properties params) {
         try {
             Object instance = objClazz.newInstance();
@@ -120,7 +132,7 @@ public abstract class JavaRecord {
         }
     }
 
-    public TableResolver getResolver() {
+    private TableResolver getResolver() {
         return resolver;
     }
 }
