@@ -2,18 +2,17 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.java.javarecord.jdbc;
+package net.java.javarecord.adapter.jdbc;
 
+import net.java.javarecord.jdbc.*;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.Properties;
 import net.java.javarecord.JavaRecord;
-import net.java.javarecord.inflector.Inflector;
+import net.java.javarecord.adapter.Generator;
 import net.java.javarecord.registry.Registry;
 
 /**
@@ -28,7 +27,7 @@ public class TableResolver {
     private String idColumn;
     private AnnotationResolver resolver;
     private String tableName;
-    private SqlForge sql;
+    private Generator generator;
     private Map<String, Object> hasMany;
     private Map<String, Object> hasOne;
     private Map<String, Object> belongsTo;
@@ -51,13 +50,8 @@ public class TableResolver {
     private void load() {
         resolver = new AnnotationResolver(javaRecord.getClass());
         tableName = resolver.readTableName();
-        sql = new SqlForge(tableName);
-        try {
-            javaRecord.setAttributes(sql.getAttributes());
-            idColumn = sql.getPrimaryKey();
-        } catch (SQLException ex) {
-            throw new RuntimeException(ex);
-        }
+        generator = Registry.getInstance().getAdapter().getCommandGenerator(tableName);
+        javaRecord.setAttributes(generator.getAttributes());
         hasMany = resolver.resolveHasMany();
         if (hasMany != null) {
             javaRecord.getAttributes().putAll(hasMany);
@@ -109,56 +103,24 @@ public class TableResolver {
      */
     public void save() {
         //TODO: Save the relationship object, hasOne e hasMany
-        try {
-            if (javaRecord.getAttributes().get(idColumn) == null) {
-                insert();
-            } else {
-                update();
-            }
-            saveHasMany();
-        } catch (SQLException ex) {
-            throw new RuntimeException(ex);
-        }
+        generator.setAttributes(javaRecord.getAttributes());
+        generator.save();
+    //saveHasMany();
     }
 
-    /**
-     * inser a new row in the database
-     * @throws java.sql.SQLException
-     * @since 1.0
-     * @see AnnotationResolver#getSequenceName()
-     * @see SqlForge#getInsertSql(java.lang.String)
-     * @see SqlForge#execute(java.lang.String) 
-     */
-    private void insert() throws SQLException {
-        String sequence = resolver.getSequenceName();
-        sql.setAttributes(javaRecord.getAttributes());
-        /*String sqlInsert = sql.getInsertSql(sequence);
-        sql.execute(sqlInsert);*/
-        sql.insertSql(sequence);
-    }
-
-    /**
-     * Update the row
-     * @throws java.sql.SQLException
-     * @since 1.0
-     * @see SqlForge#update() 
-     */
-    private void update() throws SQLException {
-        sql.update();
-    }
     /**
      * Search for each hasMany key, and save each JavaRecord object of the list
      * @since 1.0
      * @see JavaRecord#save() 
      */
-    private void saveHasMany(){
-        for(Map.Entry<String, Object> e : javaRecord.getAttributes().entrySet()){
-            if(isHasManyKey(e.getKey())){
+    private void saveHasMany() {
+        for (Map.Entry<String, Object> e : javaRecord.getAttributes().entrySet()) {
+            if (isHasManyKey(e.getKey())) {
                 List<JavaRecord> objects = (List<JavaRecord>) e.getValue();
-                for(JavaRecord j : objects){
+                for (JavaRecord j : objects) {
                     //Update the BelongTo key
                     String jrTable = javaRecord.getClass().getSimpleName().toLowerCase();
-                    j.setAttribute(jrTable+"_"+idColumn, javaRecord.getAttribute(idColumn));
+                    j.setAttribute(jrTable + "_" + idColumn, javaRecord.getAttribute(idColumn));
                     j.setAttribute(jrTable, javaRecord);
                     //Save all objects.
                     j.save();
@@ -168,13 +130,8 @@ public class TableResolver {
         }
     }
 
-    /**
-     * Return the Id column to this table
-     * @return idColumn of this table
-     * @since 1.0
-     */
-    public String getIdColumn() {
-        return idColumn;
+    public <T> List<T> find(Properties params) {
+        return (List<T>) generator.find(javaRecord.getClass(), params);
     }
 
     /**
@@ -185,13 +142,13 @@ public class TableResolver {
      * @since 1.0
      */
     public JavaRecord selectById(int id) throws SQLException {
-        ResultSet rs = sql.selectById(id);
+        /*ResultSet rs = sql.selectById(id);
         ResultSetMetaData data = rs.getMetaData();
         while (rs.next()) {
-            for (int i = 0; i < data.getColumnCount(); i++) {
-                javaRecord.setAttribute(data.getColumnLabel(i + 1), rs.getObject(i + 1));
-            }
+        for (int i = 0; i < data.getColumnCount(); i++) {
+        javaRecord.setAttribute(data.getColumnLabel(i + 1), rs.getObject(i + 1));
         }
+        }*/
         return javaRecord;
     }
 
@@ -201,54 +158,55 @@ public class TableResolver {
      * @throws java.sql.SQLException
      */
     public void loadCollection(String key) throws SQLException {
-        ResultSet rs = sql.selectCollection(key, (Integer) javaRecord.getAttribute(getIdColumn()),
-                javaRecord.getClass().getSimpleName());
+        /*ResultSet rs = sql.selectCollection(key, (Integer) javaRecord.getAttribute(getIdColumn()),
+        javaRecord.getClass().getSimpleName());
         if (rs != null) {
-            List collection = new ArrayList();
-            while (rs.next()) {
-                Class cl = resolver.getHasManyClass(key);
-                try {
-                    Object obj = cl.newInstance();
-                    collection.add(fillObject(rs, obj));
-                } catch (InstantiationException ex) {
-                    throw new SQLException(ex);
-                } catch (IllegalAccessException ex) {
-                    throw new SQLException(ex);
-                }
-            }
-            javaRecord.setAttribute(key, collection);
+        List collection = new ArrayList();
+        while (rs.next()) {
+        Class cl = resolver.getHasManyClass(key);
+        try {
+        Object obj = cl.newInstance();
+        collection.add(fillObject(rs, obj));
+        } catch (InstantiationException ex) {
+        throw new SQLException(ex);
+        } catch (IllegalAccessException ex) {
+        throw new SQLException(ex);
         }
+        }
+        javaRecord.setAttribute(key, collection);
+        }*/
     }
+
     /**
      * Load an object, used for belong to Relationship
      * @param belongKey the key to load an object
      * @since 1.0
      */
     public void loadObject(String belongKey) {
+        /*
         //TODO: Find the personal key.
         Integer id = (Integer) javaRecord.getAttribute(belongKey + "_id");
         Inflector inf = Registry.getInstance().getInflector();
         String belongTable = belongKey;
         if (inf != null) {
-            belongTable = inf.pluralize(belongKey);
+        belongTable = inf.pluralize(belongKey);
         }
         try {
-            ResultSet rs = sql.selectObject(belongTable, id);
-            while (rs.next()) {
-                Class cl = resolver.getBelongsToClass(belongKey);
-                try {
-                    Object instance = cl.newInstance();
-                    javaRecord.setAttribute(belongKey, fillObject(rs, instance));
-                } catch (InstantiationException ex) {
-                    Logger.getLogger(TableResolver.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (IllegalAccessException ex) {
-                    Logger.getLogger(TableResolver.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        } catch (SQLException ex) {
-            throw new RuntimeException(ex);
+        ResultSet rs = sql.selectObject(belongTable, id);
+        while (rs.next()) {
+        Class cl = resolver.getBelongsToClass(belongKey);
+        try {
+        Object instance = cl.newInstance();
+        javaRecord.setAttribute(belongKey, fillObject(rs, instance));
+        } catch (InstantiationException ex) {
+        Logger.getLogger(TableResolver.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IllegalAccessException ex) {
+        Logger.getLogger(TableResolver.class.getName()).log(Level.SEVERE, null, ex);
         }
-
+        }
+        } catch (SQLException ex) {
+        throw new RuntimeException(ex);
+        }*/
     }
 
     /**
@@ -259,7 +217,7 @@ public class TableResolver {
      * @throws java.sql.SQLException
      * @since 1.0
      */
-    private JavaRecord fillObject(ResultSet rs, Object instance) throws SQLException{
+    private JavaRecord fillObject(ResultSet rs, Object instance) throws SQLException {
         ResultSetMetaData metaData = rs.getMetaData();
         if (instance instanceof JavaRecord) {
             JavaRecord j = (JavaRecord) instance;

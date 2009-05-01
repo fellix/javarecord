@@ -3,7 +3,9 @@
  * and open the template in the editor.
  */
 
-package net.java.javarecord.adapter;
+package net.java.javarecord.adapter.jdbc;
+
+import net.java.javarecord.adapter.*;
 
 /**
  * This is an MySQL Adapter implementation
@@ -73,6 +75,21 @@ public class MySQLAdapter extends AbstractAdapter {
     @Override
     public String getSequenceStatment() {
         return null;
+    }
+    /**
+     * Retrieve the MySQL Command Generator.
+     * @param tableName the table name
+     * @return Generator
+     * @since 1.0
+     */
+    @Override
+    public Generator getCommandGenerator(String tableName) {
+        return new SQLGenerator(this, tableName);
+    }
+
+    @Override
+    public String getIdSelect() {
+        return "select last_insert_id()";
     }
 
 }

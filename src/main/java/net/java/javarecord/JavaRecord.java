@@ -4,15 +4,12 @@
  */
 package net.java.javarecord;
 
-import java.lang.reflect.Field;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import net.java.javarecord.exceptions.NoParameterException;
-import net.java.javarecord.jdbc.TableResolver;
+import java.util.Properties;
+import net.java.javarecord.adapter.jdbc.TableResolver;
 
 /**
  * JavaRecord Core class, resolve annotations, and load attributes from database
@@ -53,13 +50,13 @@ public abstract class JavaRecord {
             List l = (List) attributes.get(key);
             l.add(value);
             l = null;
-        }else if(resolver.isBelongsToKey(key)){
-            String validKey = key+"_id";
+        } else if (resolver.isBelongsToKey(key)) {
+            String validKey = key + "_id";
             JavaRecord j = (JavaRecord) value;
             setAttribute(validKey, j.getAttribute("id"));
             j = null;
             attributes.put(key, value);
-        }else {
+        } else {
             attributes.put(key, value);
         }
     }
@@ -71,14 +68,14 @@ public abstract class JavaRecord {
      * @since 1.0
      */
     public <T> T getAttribute(String key) {
-        if(resolver.isHasManyKey(key)){
+        if (resolver.isHasManyKey(key)) {
             try {
                 //For use lazy, fill the array
                 resolver.loadCollection(key);
             } catch (SQLException ex) {
                 throw new RuntimeException(ex);
             }
-        }else if(resolver.isBelongsToKey(key)){
+        } else if (resolver.isBelongsToKey(key)) {
             //LOAD THE OBJECT FOR REFERENCE
             resolver.loadObject(key);
         }
@@ -102,44 +99,25 @@ public abstract class JavaRecord {
     public void setAttributes(Map<String, Object> attributes) {
         this.attributes = attributes;
     }
-    //String formats key => value
 
-    public static <T> T find(Class<? extends JavaRecord> objClazz, Object... params) {
-        if (params.length <= 0) {
-            throw new NoParameterException("No Parameters for find");
-        }
-        String idstr = params[0] + "";
+    public static <T> T find(Class<? extends JavaRecord> objClazz, Properties params) {
         try {
-            int id = Integer.parseInt(idstr);
-            return (T) findById(objClazz, id);
-        } catch (NumberFormatException ex) {
-            //TODO: Make the SQL for others
-        }
-        return null;
-    }
-    /**
-     * Search an object by the id
-     * @param clazz the object class
-     * @param id the id to find
-     * @return object found or null
-     * @since 1.0
-     */
-    private static Object findById(Class<? extends JavaRecord> clazz, int id) {
-        try {
-            Object instance = clazz.newInstance();
+            Object instance = objClazz.newInstance();
+            TableResolver table;
             if (instance instanceof JavaRecord) {
-                //Search the TableResolver of this class to find the tableName
-                TableResolver table = ((JavaRecord) instance).getResolver();
-                return table.selectById(id);
+                table = ((JavaRecord) instance).getResolver();
+            } else {
+                throw new JavaRecordException("Not found a valid JavaRecord class to find");
             }
-        } catch (SQLException ex) {
-            Logger.getLogger(JavaRecord.class.getName()).log(Level.SEVERE, null, ex);
+            if (params == null) {
+                return (T) table.find(null);
+            }
+            return (T) table.find(params);
         } catch (InstantiationException ex) {
-            Logger.getLogger(JavaRecord.class.getName()).log(Level.SEVERE, null, ex);
+            throw new JavaRecordException("Couldn't find Object of class " + objClazz, ex);
         } catch (IllegalAccessException ex) {
-            Logger.getLogger(JavaRecord.class.getName()).log(Level.SEVERE, null, ex);
+            throw new JavaRecordException("Couldn't find Object of class " + objClazz, ex);
         }
-        return null;
     }
 
     public TableResolver getResolver() {

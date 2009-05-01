@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.java.javarecord.jdbc;
+package net.java.javarecord.adapter.jdbc;
 
 import java.math.BigDecimal;
 import java.sql.Blob;

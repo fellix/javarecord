@@ -7,6 +7,7 @@ package net.java.javarecord.registry;
 import java.util.ArrayList;
 import java.util.List;
 import net.java.javarecord.adapter.Adapter;
+import net.java.javarecord.adapter.jdbc.MySQLAdapter;
 import net.java.javarecord.entities.Config;
 import net.java.javarecord.inflector.BaseInflector;
 import net.java.javarecord.inflector.Inflector;
@@ -51,6 +52,7 @@ public class Registry {
      */
     private Registry() {
         inflector = new BaseInflector();
+        addAdapter(new MySQLAdapter());
     }
 
     /**

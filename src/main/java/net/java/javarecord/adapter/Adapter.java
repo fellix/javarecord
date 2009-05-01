@@ -79,5 +79,16 @@ public interface Adapter {
      * @see GeneratorType
      */
     String getSequenceStatment();
-
+    /**
+     * The command generator to comunicates with the database
+     * @return Generator
+     * @since 1.0
+     */
+    Generator getCommandGenerator(String tableName);
+    /**
+     * The ID Selecion String
+     * @return SQL String
+     * @since 1.0
+     */
+    String getIdSelect();
 }

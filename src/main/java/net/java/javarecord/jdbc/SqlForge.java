@@ -4,6 +4,8 @@
  */
 package net.java.javarecord.jdbc;
 
+import net.java.javarecord.adapter.jdbc.SQLUtil;
+import net.java.javarecord.adapter.jdbc.DatabaseManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
