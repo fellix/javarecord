@@ -247,6 +247,7 @@ public class SQLGenerator implements Generator {
         StringBuilder sb = new StringBuilder("DELETE FROM ");
         sb.append(tableName).append(" WHERE ").append(primaryKey).append(" = ?");
         PreparedStatement smt = database.getPreparedStatement(sb.toString());
+        System.out.println(sb.toString());
         try {
             SQLUtil.addParameter(smt, 1, attributes.get(primaryKey));
             smt.execute();

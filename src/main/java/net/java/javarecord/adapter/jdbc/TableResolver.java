@@ -109,6 +109,7 @@ public class TableResolver {
     }
 
     public void delete(){
+        generator.setAttributes(javaRecord.getAttributes());
         generator.remove();
     }
 

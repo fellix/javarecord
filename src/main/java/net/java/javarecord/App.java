@@ -36,12 +36,8 @@ public class App
         List<Post> posts = JavaRecord.find(Post.class, prop);
         print(posts.size());
         Post post = posts.get(0);
-        Post p1 = post;
-        p1.setAttribute("id", null);
-        p1.setAttribute("title", "Novo post");
-        p1.save();
-        
         print(post.getAttribute("id"));
+        post.delete();
     }
     
     public static void print(Object o){
